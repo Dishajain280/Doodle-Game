@@ -22,15 +22,17 @@ const Lobby = ({ onJoinRoom }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8">
-        <h1 className="text-4xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent text-center mb-8">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-yellow-200 via-pink-200 to-indigo-400 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white/90 backdrop-blur-lg rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.2)] p-10 transform transition-all hover:scale-[1.01]">
+        <h1 className="text-5xl font-black bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 bg-clip-text text-transparent text-center mb-2 drop-shadow-sm">
           DoodleGuess
         </h1>
-
+        <p className="text-center text-gray-500 font-medium mb-8">
+          Draw, Guess, Win! 🎨
+        </p>
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-bold text-gray-600 mb-2 ml-1">
               Your Name
             </label>
             <input
@@ -38,12 +40,12 @@ const Lobby = ({ onJoinRoom }) => {
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               placeholder="Enter your name"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-purple-400 focus:ring-4 focus:ring-purple-100 outline-none transition-all font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-bold text-gray-600 mb-2 ml-1">
               Room Code
             </label>
             <div className="flex gap-2">
@@ -52,11 +54,11 @@ const Lobby = ({ onJoinRoom }) => {
                 value={roomId}
                 onChange={(e) => setRoomId(e.target.value.toUpperCase())}
                 placeholder="Enter room code"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                className="flex-1 px-5 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-purple-400 focus:ring-4 focus:ring-purple-100 outline-none transition-all font-mono font-bold"
               />
               <button
                 onClick={handleCreateRoom}
-                className="px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                className="px-6 py-4 bg-gradient-to-r from-emerald-400 to-cyan-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-emerald-200 hover:-translate-y-0.5 active:translate-y-0 transition-all"
               >
                 Create
               </button>
@@ -66,9 +68,9 @@ const Lobby = ({ onJoinRoom }) => {
           <button
             onClick={handleJoinRoom}
             disabled={!isConnected || !playerName.trim() || !roomId.trim()}
-            className={`w-full py-4 text-lg font-bold rounded-xl shadow-lg transition-all ${
+            className={`w-full py-5 text-xl font-black rounded-2xl shadow-xl transition-all transform active:scale-95 ${
               isConnected && playerName.trim() && roomId.trim()
-                ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:shadow-xl hover:from-indigo-600 hover:to-purple-700"
+                ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white hover:shadow-purple-200 hover:-translate-y-1"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >

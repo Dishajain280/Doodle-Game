@@ -1,19 +1,68 @@
 import { useState, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { useSocket } from "../contexts/SocketContext";
 import DrawingCanvas from "./DrawingCanvas";
 import ChatBox from "./ChatBox";
 import Leaderboard from "./Leaderboard";
 import Lobby from "./Lobby";
 
-const WORDS = ["CAT", "HOUSE", "SUN", "FLOWER", "CAR", "TREE", "APPLE"];
-
 const GameLayout = () => {
-  const { socket, isConnected } = useSocket();
+  const location = useLocation();
+  const { socket } = useSocket();
   const [currentRoom, setCurrentRoom] = useState(null);
   const [playerName, setPlayerName] = useState("");
   const [roomData, setRoomData] = useState(null);
   const [timeLeft, setTimeLeft] = useState(60);
   const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    if (location.state?.roomId && !currentRoom) {
+      setCurrentRoom(location.state.roomId);
+      setPlayerName(location.state.playerName || "");
+    }
+  }, [location.state, currentRoom]);
+
+  useEffect(() => {
+    if (!currentRoom && typeof window !== "undefined") {
+      const stored = window.localStorage.getItem("doodle-room");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed?.roomId && parsed?.playerName) {
+            setCurrentRoom(parsed.roomId);
+            setPlayerName(parsed.playerName);
+          }
+        } catch (error) {
+          console.warn("Failed to parse saved room data", error);
+        }
+      }
+    }
+  }, [currentRoom]);
+
+  useEffect(() => {
+    if (currentRoom && playerName && typeof window !== "undefined") {
+      window.localStorage.setItem(
+        "doodle-room",
+        JSON.stringify({ roomId: currentRoom, playerName }),
+      );
+    }
+  }, [currentRoom, playerName]);
+
+  useEffect(() => {
+    if (
+      !socket ||
+      !currentRoom ||
+      !playerName ||
+      roomData ||
+      location.state?.skipAutoJoin
+    )
+      return;
+
+    socket.emit("join-room", {
+      roomId: currentRoom,
+      playerName: playerName,
+    });
+  }, [socket, currentRoom, playerName, roomData, location.state]);
 
   // Socket event listeners
   useEffect(() => {
@@ -170,19 +219,19 @@ const GameLayout = () => {
                 🎨 You are drawing
               </span>
             ) : (
-              <span className="px-6 py-2 bg-blue-500 text-white rounded-full font-bold text-lg shadow-lg">
+              <span className="px-8 py-4 bg-blue-500 text-white rounded-[2rem] font-black text-lg shadow-xl">
                 👀 Guess the drawing
               </span>
             )}
-            <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-lg border">
+            <div className="flex items-center gap-3 px-6 py-3 bg-white rounded-3xl shadow-lg border-2 border-rose-100">
               {timeLeft === 0 ? (
-                <span className="font-mono text-2xl text-red-600 font-bold">
+                <span className="font-black text-2xl text-rose-600">
                   Time's Up!
                 </span>
               ) : (
                 <>
-                  <div className="w-8 h-8 bg-red-500 rounded-full animate-ping"></div>
-                  <span className="font-mono text-2xl">
+                  <div className="w-4 h-4 bg-rose-500 rounded-full animate-ping"></div>
+                  <span className="font-mono text-3xl font-black text-gray-800">
                     {timeLeft.toString().padStart(2, "0")}
                   </span>
                 </>

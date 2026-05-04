@@ -12,12 +12,14 @@ export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:3001");
+    const socketUrl =
+      import.meta.env.VITE_SOCKET_URL || "http://localhost:3001";
+    const newSocket = io(socketUrl);
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
       setIsConnected(true);
-      console.log("Connected to server");
+      console.log("Connected to server", socketUrl);
     });
 
     newSocket.on("disconnect", () => {

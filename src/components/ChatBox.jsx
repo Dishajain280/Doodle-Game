@@ -24,44 +24,48 @@ const ChatBox = ({ currentWord, role, messages = [], onGuess }) => {
   };
 
   return (
-    <div className="w-full max-w-md h-96 flex flex-col bg-white border-2 border-gray-200 rounded-2xl shadow-xl overflow-hidden">
-      <div className="p-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-lg shadow-lg">
+    <div className="w-full max-w-md h-[450px] flex flex-col bg-white rounded-[2rem] shadow-2xl border-4 border-white overflow-hidden ring-1 ring-gray-100">
+      <div className="p-5 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-black text-xl shadow-md">
         💬 Guesses & Chat ({messages.length - 1} messages)
       </div>
-      <div className="flex-1 p-4 overflow-y-auto bg-gradient-to-b from-gray-50 to-white space-y-3">
+      <div className="flex-1 p-4 overflow-y-auto bg-indigo-50/30 space-y-4">
         {messages.map((msg, index) => (
           <div
             key={msg.id || index}
-            className={`p-3 rounded-xl shadow-sm max-w-xs ${
+            className={`p-3 px-4 rounded-2xl shadow-sm max-w-[85%] transform transition-all hover:scale-[1.02] ${
               msg.sender === "You"
-                ? "bg-blue-500 text-white ml-auto"
+                ? "bg-indigo-500 text-white ml-auto rounded-tr-none"
                 : msg.type === "system"
-                  ? "bg-green-100 text-green-800 mx-auto text-center w-full"
-                  : "bg-white border border-gray-200"
+                  ? "bg-yellow-100 text-yellow-800 mx-auto text-center w-[95%] border-2 border-yellow-200 font-bold"
+                  : msg.type === "guess"
+                    ? "bg-emerald-100 text-emerald-800 border-2 border-emerald-200 rounded-tl-none"
+                    : "bg-white border-2 border-gray-100 text-gray-700 rounded-tl-none"
             }`}
           >
-            <span className="font-bold block text-xs opacity-75">
+            <span
+              className={`font-black block text-[10px] uppercase tracking-wider mb-1 ${msg.sender === "You" ? "text-indigo-200" : "text-gray-400"}`}
+            >
               {msg.sender}
             </span>
-            <p>{msg.text}</p>
+            <p className="font-medium">{msg.text}</p>
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <div className="p-3 border-t border-gray-200 bg-white">
-        <div className="flex gap-2">
+      <div className="p-4 bg-white border-t-2 border-gray-50">
+        <div className="flex gap-3">
           <input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Guess the word or chat..."
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+            placeholder="Type your guess here!"
+            className="flex-1 px-5 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-purple-400 focus:ring-4 focus:ring-purple-100 outline-none transition-all font-bold placeholder:text-gray-400"
             onKeyPress={(e) => e.key === "Enter" && sendMessage()}
           />
           <button
             onClick={sendMessage}
-            className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-700 transition-all transform hover:-translate-y-0.5"
+            className="px-6 py-3 bg-indigo-600 text-white font-black rounded-2xl shadow-lg hover:bg-indigo-700 transition-all active:scale-90"
           >
-            Send
+            OK!
           </button>
         </div>
       </div>
