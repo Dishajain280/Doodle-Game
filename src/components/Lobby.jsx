@@ -25,10 +25,10 @@ const Lobby = ({ onJoinRoom }) => {
     <div className="min-h-[calc(100vh-80px)] bg-brand-background flex items-center justify-center p-4">
       <div className="max-w-md w-full animate-in fade-in zoom-in duration-500">
         <div className="card shadow-2xl relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-primary via-brand-accent to-brand-secondary" />
+          <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-brand-primary via-brand-accent to-brand-secondary" />
           
           <div className="text-center mb-10">
-            <h1 className="text-5xl mb-2 bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+            <h1 className="text-5xl mb-2 bg-linear-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
               DoodleGuess
             </h1>
             <p className="text-slate-500 font-medium">

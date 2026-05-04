@@ -20,7 +20,7 @@ function App() {
             <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
               <Link
                 to="/"
-                className="text-3xl font-black bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent hover:scale-105 transition-transform"
+                className="text-3xl font-black bg-linear-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent hover:scale-105 transition-transform"
               >
                 DoodleGuess
               </Link>

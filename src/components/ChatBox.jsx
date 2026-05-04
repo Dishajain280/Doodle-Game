@@ -23,7 +23,7 @@ const ChatBox = ({ currentWord, role, messages = [], onGuess }) => {
   };
 
   return (
-    <div className="w-full flex flex-col h-[500px] bg-white rounded-3xl shadow-soft border border-slate-100 overflow-hidden">
+    <div className="w-full flex flex-col h-125 bg-white rounded-3xl shadow-soft border border-slate-100 overflow-hidden">
       <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
         <h3 className="font-display font-bold text-slate-700 flex items-center gap-2">
           <span className="text-xl">💬</span>

@@ -2,7 +2,7 @@ const Leaderboard = ({ players = [] }) => {
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
   return (
-    <div className="card !p-0 overflow-hidden shadow-playful border-2 border-brand-primary/10">
+    <div className="card p-0! overflow-hidden shadow-playful border-2 border-brand-primary/10">
       <div className="px-6 py-4 bg-brand-primary/5 border-b border-brand-primary/10 flex items-center justify-between">
         <h3 className="font-display font-black text-brand-primary flex items-center gap-2 uppercase tracking-tight">
           <span className="text-xl">🏆</span>

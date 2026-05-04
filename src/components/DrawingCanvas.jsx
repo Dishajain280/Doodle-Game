@@ -129,11 +129,11 @@ const DrawingCanvas = ({
   }, [isReadOnly]);
 
   return (
-    <div className="card !p-2 flex flex-col gap-4 overflow-hidden shadow-2xl bg-white border-2 border-slate-200">
+    <div className="card p-2! flex flex-col gap-4 overflow-hidden shadow-2xl bg-white border-2 border-slate-200">
       <div className="relative">
         <canvas
           ref={canvasRef}
-          className="w-full h-[400px] md:h-[500px] bg-white cursor-crosshair transition-all duration-200"
+          className="w-full h-100 md:h-125 bg-white cursor-crosshair transition-all duration-200"
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={finishDrawing}

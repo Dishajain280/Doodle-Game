@@ -193,7 +193,7 @@ const GameLayout = () => {
     <div className="min-h-[calc(100vh-80px)] bg-brand-background py-6 px-4 md:px-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Game Stats Header */}
-        <div className="card glass !py-4 flex flex-wrap items-center justify-between gap-6 px-8 sticky top-24 z-40">
+        <div className="card glass py-4! flex flex-wrap items-center justify-between gap-6 px-8 sticky top-24 z-40">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-brand-primary/10 rounded-2xl flex items-center justify-center text-2xl">
               🏠
