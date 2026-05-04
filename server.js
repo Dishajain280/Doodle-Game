@@ -1,18 +1,30 @@
-const express = require("express");
-const http = require("http");
-const socketIo = require("socket.io");
-const cors = require("cors");
+import express from "express";
+import http from "http";
+import { Server } from "socket.io";
+import cors from "cors";
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
+const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5174",
+    origin: [
+      "http://localhost:5176",
+      "http://localhost:5175",
+      "http://localhost:5174",
+    ],
     methods: ["GET", "POST"],
   },
 });
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5176",
+      "http://localhost:5175",
+      "http://localhost:5174",
+    ],
+  }),
+);
 app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
@@ -87,12 +99,24 @@ io.on("connection", (socket) => {
 
     if (room && guess.toLowerCase() === room.currentWord.toLowerCase()) {
       // Correct guess
-      player.player.score += 100;
+      const pointsForGuesser = 50;
+      const pointsForDrawer = 25;
+
+      player.player.score += pointsForGuesser;
+
+      // Award points to the drawer as well
+      const drawer = room.players.find((p) => p.isDrawer);
+      if (drawer) {
+        drawer.score += pointsForDrawer;
+      }
+
       io.to(roomId).emit("correct-guess", {
         player: player.player.name,
         word: room.currentWord,
+        scores: room.players.map((p) => ({ id: p.id, score: p.score })),
       });
-      // Could end round here
+      // End round and start next
+      nextRound(roomId);
     } else {
       // Wrong guess
       io.to(roomId).emit("wrong-guess", {
@@ -126,12 +150,17 @@ function startTimer(roomId) {
   const room = rooms[roomId];
   if (!room) return;
 
-  const timer = setInterval(() => {
+  if (room.timer) {
+    clearInterval(room.timer);
+  }
+
+  room.timer = setInterval(() => {
     room.timeLeft--;
     io.to(roomId).emit("timer-update", room.timeLeft);
 
     if (room.timeLeft <= 0) {
-      clearInterval(timer);
+      clearInterval(room.timer);
+      room.timer = null;
       // Next round logic
       nextRound(roomId);
     }
@@ -141,6 +170,12 @@ function startTimer(roomId) {
 function nextRound(roomId) {
   const room = rooms[roomId];
   if (!room) return;
+
+  // Clear timer if it exists
+  if (room.timer) {
+    clearInterval(room.timer);
+    room.timer = null;
+  }
 
   // Rotate drawer
   const currentDrawerIndex = room.players.findIndex((p) => p.isDrawer);
@@ -159,16 +194,46 @@ function nextRound(roomId) {
 
 function getRandomWord() {
   const words = [
-    "CAT",
+    "DOG",
     "HOUSE",
-    "SUN",
-    "FLOWER",
     "CAR",
     "TREE",
+    "PIZZA",
     "APPLE",
-    "DOG",
+    "BANANA",
+    "SUN",
+    "MOON",
+    "FLOWER",
+    "BICYCLE",
+    "AIRPLANE",
+    "COMPUTER",
+    "PHONE",
+    "BOOK",
+    "COFFEE",
+    "CAKE",
+    "MOUNTAIN",
+    "OCEAN",
     "BIRD",
     "FISH",
+    "ELEPHANT",
+    "GIRAFFE",
+    "LION",
+    "TIGER",
+    "PENGUIN",
+    "ROCKET",
+    "GUITAR",
+    "PIANO",
+    "CHAIR",
+    "TABLE",
+    "WINDOW",
+    "DOOR",
+    "SHOES",
+    "HAT",
+    "WATCH",
+    "KEY",
+    "SPOON",
+    "FORK",
+    "KNIFE",
   ];
   return words[Math.floor(Math.random() * words.length)];
 }

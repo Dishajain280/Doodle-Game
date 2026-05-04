@@ -6,7 +6,7 @@ const LobbyPage = () => {
 
   const handleJoinRoom = (roomId, playerName) => {
     navigate("/game", {
-      state: { roomId, playerName, skipAutoJoin: true },
+      state: { roomId, playerName },
     });
   };
 

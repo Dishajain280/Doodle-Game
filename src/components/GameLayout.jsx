@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useSocket } from "../contexts/SocketContext";
 import DrawingCanvas from "./DrawingCanvas";
 import ChatBox from "./ChatBox";
 import Leaderboard from "./Leaderboard";
-import Lobby from "./Lobby";
 
 const GameLayout = () => {
   const location = useLocation();
@@ -14,6 +13,8 @@ const GameLayout = () => {
   const [roomData, setRoomData] = useState(null);
   const [timeLeft, setTimeLeft] = useState(60);
   const [messages, setMessages] = useState([]);
+  const [roomChecked, setRoomChecked] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (location.state?.roomId && !currentRoom) {
@@ -37,7 +38,14 @@ const GameLayout = () => {
         }
       }
     }
+    setRoomChecked(true);
   }, [currentRoom]);
+
+  useEffect(() => {
+    if (roomChecked && !currentRoom && !location.state?.roomId) {
+      navigate("/lobby", { replace: true });
+    }
+  }, [roomChecked, currentRoom, location.state, navigate]);
 
   useEffect(() => {
     if (currentRoom && playerName && typeof window !== "undefined") {
@@ -49,20 +57,13 @@ const GameLayout = () => {
   }, [currentRoom, playerName]);
 
   useEffect(() => {
-    if (
-      !socket ||
-      !currentRoom ||
-      !playerName ||
-      roomData ||
-      location.state?.skipAutoJoin
-    )
-      return;
+    if (!socket || !currentRoom || !playerName || roomData) return;
 
     socket.emit("join-room", {
       roomId: currentRoom,
       playerName: playerName,
     });
-  }, [socket, currentRoom, playerName, roomData, location.state]);
+  }, [socket, currentRoom, playerName, roomData]);
 
   // Socket event listeners
   useEffect(() => {
@@ -90,6 +91,17 @@ const GameLayout = () => {
     });
 
     socket.on("correct-guess", (data) => {
+      if (data.scores) {
+        setRoomData((prev) => {
+          if (!prev) return prev;
+          const updatedPlayers = prev.players.map((p) => {
+            const newScore = data.scores.find((s) => s.id === p.id);
+            return newScore ? { ...p, score: newScore.score } : p;
+          });
+          return { ...prev, players: updatedPlayers };
+        });
+      }
+
       setMessages((prev) => [
         ...prev,
         {
@@ -116,6 +128,9 @@ const GameLayout = () => {
     socket.on("next-round", (data) => {
       setRoomData(data);
       setTimeLeft(data.timeLeft);
+      // Clear the canvas for the next round
+      window.dispatchEvent(new CustomEvent("clear-canvas"));
+
       setMessages((prev) => [
         ...prev,
         {
@@ -136,6 +151,19 @@ const GameLayout = () => {
       socket.off("next-round");
     };
   }, [socket]);
+
+  useEffect(() => {
+    if (!socket || !roomData || roomData.gameStarted || !currentRoom) return;
+
+    const isHost = roomData.players[0]?.id === socket.id;
+    if (roomData.players.length >= 2 && isHost) {
+      const delay = setTimeout(() => {
+        socket.emit("start-game", currentRoom);
+      }, 2000);
+
+      return () => clearTimeout(delay);
+    }
+  }, [socket, roomData, currentRoom]);
 
   const handleJoinRoom = (roomId, name) => {
     setCurrentRoom(roomId);
@@ -167,7 +195,11 @@ const GameLayout = () => {
   );
 
   if (!currentRoom) {
-    return <Lobby onJoinRoom={handleJoinRoom} />;
+    return (
+      <div className="min-h-screen bg-brand-background flex items-center justify-center">
+        <p className="text-slate-600 text-lg">Redirecting to lobby...</p>
+      </div>
+    );
   }
 
   if (!roomData) {
@@ -178,7 +210,9 @@ const GameLayout = () => {
             <div className="absolute inset-0 border-4 border-brand-primary/20 rounded-full" />
             <div className="absolute inset-0 border-4 border-brand-primary rounded-full border-t-transparent animate-spin" />
           </div>
-          <h2 className="text-xl font-bold text-slate-600">Setting up your room...</h2>
+          <h2 className="text-xl font-bold text-slate-600">
+            Setting up your room...
+          </h2>
           <p className="text-slate-400 mt-2">Just a moment!</p>
         </div>
       </div>
@@ -199,13 +233,17 @@ const GameLayout = () => {
               🏠
             </div>
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Room ID</p>
-              <p className="font-mono font-black text-brand-primary">{currentRoom}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                Room ID
+              </p>
+              <p className="font-mono font-black text-brand-primary">
+                {currentRoom}
+              </p>
             </div>
           </div>
 
           <div className="flex-1 flex flex-col items-center">
-             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
               {isDrawer ? "Drawing Word" : "Guessing..."}
             </p>
             <div className="flex gap-2">
@@ -216,7 +254,10 @@ const GameLayout = () => {
               ) : (
                 <div className="flex gap-2">
                   {currentWord.split("").map((_, i) => (
-                    <div key={i} className="w-6 h-1 bg-slate-300 rounded-full mt-6" />
+                    <div
+                      key={i}
+                      className="w-6 h-1 bg-slate-300 rounded-full mt-6"
+                    />
                   ))}
                 </div>
               )}
@@ -225,17 +266,23 @@ const GameLayout = () => {
 
           <div className="flex items-center gap-8">
             <div className="text-center">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Time Left</p>
-              <div className={`text-3xl font-mono font-black tabular-nums transition-colors ${timeLeft <= 10 ? "text-brand-danger animate-pulse" : "text-slate-700"}`}>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                Time Left
+              </p>
+              <div
+                className={`text-3xl font-mono font-black tabular-nums transition-colors ${timeLeft <= 10 ? "text-brand-danger animate-pulse" : "text-slate-700"}`}
+              >
                 {timeLeft.toString().padStart(2, "0")}s
               </div>
             </div>
-            
-            <div className={`px-6 py-3 rounded-2xl font-black text-sm flex items-center gap-3 shadow-sm border ${
-              isDrawer 
-                ? "bg-brand-success/10 border-brand-success/20 text-brand-success" 
-                : "bg-brand-accent/10 border-brand-accent/20 text-brand-accent"
-            }`}>
+
+            <div
+              className={`px-6 py-3 rounded-2xl font-black text-sm flex items-center gap-3 shadow-sm border ${
+                isDrawer
+                  ? "bg-brand-success/10 border-brand-success/20 text-brand-success"
+                  : "bg-brand-accent/10 border-brand-accent/20 text-brand-accent"
+              }`}
+            >
               <span className="text-xl">{isDrawer ? "🎨" : "👀"}</span>
               {isDrawer ? "YOUR TURN" : "GUESS IT"}
             </div>
@@ -272,18 +319,25 @@ const GameLayout = () => {
               <div className="text-6xl">🎮</div>
               <div>
                 <h2 className="text-3xl mb-2">Ready to Play?</h2>
-                <p className="text-slate-500 font-medium">Waiting for the host to start the game.</p>
+                <p className="text-slate-500 font-medium">
+                  Waiting for the host to start the game.
+                </p>
               </div>
-              
+
               <div className="p-4 bg-slate-50 rounded-2xl">
-                 <p className="text-sm font-bold text-slate-400 mb-3 uppercase tracking-widest">Players Joined</p>
-                 <div className="flex flex-wrap justify-center gap-2">
-                    {roomData.players.map(p => (
-                      <span key={p.id} className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 shadow-sm">
-                        {p.name}
-                      </span>
-                    ))}
-                 </div>
+                <p className="text-sm font-bold text-slate-400 mb-3 uppercase tracking-widest">
+                  Players Joined
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {roomData.players.map((p) => (
+                    <span
+                      key={p.id}
+                      className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 shadow-sm"
+                    >
+                      {p.name}
+                    </span>
+                  ))}
+                </div>
               </div>
 
               {roomData.players.length >= 2 ? (

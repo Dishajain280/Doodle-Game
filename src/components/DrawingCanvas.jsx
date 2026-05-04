@@ -121,12 +121,19 @@ const DrawingCanvas = ({
   );
 
   const clearCanvas = useCallback(() => {
-    if (isReadOnly) return;
     const canvas = canvasRef.current;
     if (canvas && ctxRef.current) {
       ctxRef.current.clearRect(0, 0, canvas.width, canvas.height);
     }
-  }, [isReadOnly]);
+  }, []);
+
+  useEffect(() => {
+    const handleClear = () => {
+      clearCanvas();
+    };
+    window.addEventListener("clear-canvas", handleClear);
+    return () => window.removeEventListener("clear-canvas", handleClear);
+  }, [clearCanvas]);
 
   return (
     <div className="card p-2! flex flex-col gap-4 overflow-hidden shadow-2xl bg-white border-2 border-slate-200">

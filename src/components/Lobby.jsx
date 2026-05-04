@@ -7,11 +7,7 @@ const Lobby = ({ onJoinRoom }) => {
   const { socket, isConnected } = useSocket();
 
   const handleJoinRoom = () => {
-    if (playerName.trim() && roomId.trim() && socket) {
-      socket.emit("join-room", {
-        roomId: roomId.trim(),
-        playerName: playerName.trim(),
-      });
+    if (playerName.trim() && roomId.trim()) {
       onJoinRoom(roomId.trim(), playerName.trim());
     }
   };
@@ -26,7 +22,7 @@ const Lobby = ({ onJoinRoom }) => {
       <div className="max-w-md w-full animate-in fade-in zoom-in duration-500">
         <div className="card shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-brand-primary via-brand-accent to-brand-secondary" />
-          
+
           <div className="text-center mb-10">
             <h1 className="text-5xl mb-2 bg-linear-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
               DoodleGuess
@@ -77,16 +73,22 @@ const Lobby = ({ onJoinRoom }) => {
               disabled={!isConnected || !playerName.trim() || !roomId.trim()}
               className="btn-primary w-full py-5 text-xl"
             >
-              {isConnected ? "Join Game" : "Connecting..."}
+              {isConnected ? "Connect" : "Connecting..."}
             </button>
 
             <div className="flex items-center justify-center gap-2 text-sm font-medium">
               <div
                 className={`w-2.5 h-2.5 rounded-full animate-pulse ${
-                  isConnected ? "bg-brand-success shadow-[0_0_8px_rgba(16,185,129,0.6)]" : "bg-brand-danger"
+                  isConnected
+                    ? "bg-brand-success shadow-[0_0_8px_rgba(16,185,129,0.6)]"
+                    : "bg-brand-danger"
                 }`}
               />
-              <span className={isConnected ? "text-brand-success" : "text-brand-danger"}>
+              <span
+                className={
+                  isConnected ? "text-brand-success" : "text-brand-danger"
+                }
+              >
                 {isConnected ? "Server Online" : "Server Offline"}
               </span>
             </div>
