@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #6366f1;
+  --color-brand-secondary: #ec4899;
+  --color-brand-accent: #8b5cf6;
+  --color-brand-success: #10b981;
+  --color-brand-warning: #f59e0b;
+  --color-brand-danger: #ef4444;
+  --color-brand-background: #f8fafc;
+  --color-brand-surface: #ffffff;
+
+  --font-sans: "Inter", "system-ui", "sans-serif";
+  --font-display: "Outfit", "Inter", "system-ui", "sans-serif";
+  --font-mono: "JetBrains Mono", "monospace";
+
+  --radius-3xl: 1.5rem;
+  --radius-4xl: 2rem;
+
+  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  --shadow-playful: 0 10px 25px -5px rgba(99, 102, 241, 0.2);
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+
+@layer base {
+  body {
+    @apply bg-brand-background text-slate-900 font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-black tracking-tight;
+  }
+}
+
+@layer utilities {
+  .animate-in {
+    animation-duration: 0.3s;
+    animation-fill-mode: both;
+  }
+  .fade-in {
+    animation-name: fadeIn;
+  }
+  .zoom-in {
+    animation-name: zoomIn;
+  }
+  .slide-in-from-left {
+    animation-name: slideInLeft;
+  }
+  .slide-in-from-right {
+    animation-name: slideInRight;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-brand-primary text-white font-bold rounded-2xl shadow-playful hover:shadow-[0_10px_25px_-5px_rgba(99,102,241,0.4)] hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 bg-brand-secondary text-white font-bold rounded-2xl shadow-playful hover:shadow-[0_10px_25px_-5px_rgba(236,72,153,0.4)] hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+  }
+
+  .card {
+    @apply bg-white rounded-3xl shadow-soft border border-slate-100 p-6;
+  }
+
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-soft;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+}
