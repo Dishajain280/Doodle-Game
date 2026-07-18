@@ -1,6 +1,6 @@
 # 🎨 DoodleGuess
 
-**DoodleGuess** is a real‑time, multiplayer drawing and guessing game built with **ReactJS**, **Node.js**, and **Socket.IO**. Players can create or join rooms, take turns drawing prompts on a shared canvas, and compete to guess words as quickly as possible. The game runs for **three rounds**, with points awarded based on speed and accuracy.
+**DoodleGuess** is a real‑time, multiplayer drawing and guessing game built with **ReactJS**, **Node.js**, and **Socket.IO**. Players can create or join rooms, take turns drawing prompts on a shared canvas, and compete to guess words as quickly as possible. The game runs for **four rounds**, with points awarded based on speed and accuracy.
 
 ---
 
@@ -16,7 +16,7 @@ Play a fast‑paced drawing and guessing game with friends. Create a room, invit
   - Multiple colors
   - Different pen sizes
 - **Gameplay**:
-  - Three rounds per session
+  - Four rounds per session
   - Points awarded for correct guesses
   - Integrated chat feature in the lobby
 - **Real‑time Communication** powered by **Socket.IO**
@@ -28,7 +28,7 @@ Play a fast‑paced drawing and guessing game with friends. Create a room, invit
 1. **Home** – Learn about the game and navigate to the lobby.
 2. **Lobby** – Create or join a room, invite friends.
 3. **Game** – One player draws, others guess in real‑time.
-4. **Scoring** – Points are tracked across three rounds.
+4. **Scoring** – Points are tracked across four rounds.
 5. **Results** – Highest score wins at the end of the session.
 
 ---
