@@ -11,6 +11,7 @@ const io = new Server(server, {
       "http://localhost:5176",
       "http://localhost:5175",
       "http://localhost:5174",
+      "http://localhost:5173",
     ],
     methods: ["GET", "POST"],
   },
@@ -22,12 +23,27 @@ app.use(
       "http://localhost:5176",
       "http://localhost:5175",
       "http://localhost:5174",
+      "http://localhost:5173",
     ],
   }),
 );
 app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
+
+// Helper function to get serializable room data
+function getRoomData(room) {
+  if (!room) return null;
+  return {
+    players: room.players,
+    currentWord: room.currentWord,
+    drawer: room.drawer,
+    timeLeft: room.timeLeft,
+    gameStarted: room.gameStarted,
+    roundCount: room.roundCount,
+    maxRounds: room.maxRounds,
+  };
+}
 
 // Game state
 let rooms = {};
@@ -48,6 +64,9 @@ io.on("connection", (socket) => {
         drawer: null,
         timeLeft: 60,
         gameStarted: false,
+        roundCount: 0,
+        maxRounds: 4,
+        guessesPerPlayer: {}, // Track guesses per player per round
       };
     }
 
@@ -62,7 +81,7 @@ io.on("connection", (socket) => {
     players[socket.id] = { roomId, player };
 
     // Notify all players in room
-    io.to(roomId).emit("room-update", rooms[roomId]);
+    io.to(roomId).emit("room-update", getRoomData(rooms[roomId]));
 
     console.log(`${playerName} joined room ${roomId}`);
   });
@@ -71,16 +90,19 @@ io.on("connection", (socket) => {
   socket.on("start-game", (roomId) => {
     if (rooms[roomId] && rooms[roomId].players.length >= 2) {
       rooms[roomId].gameStarted = true;
+      rooms[roomId].roundCount = 0;
       rooms[roomId].currentWord = getRandomWord();
       rooms[roomId].drawer = rooms[roomId].players[0].id;
       rooms[roomId].timeLeft = 60;
+      rooms[roomId].guessesPerPlayer = {};
 
       // Update player roles
       rooms[roomId].players.forEach((player, index) => {
         player.isDrawer = index === 0;
+        rooms[roomId].guessesPerPlayer[player.id] = 0;
       });
 
-      io.to(roomId).emit("game-started", rooms[roomId]);
+      io.to(roomId).emit("game-started", getRoomData(rooms[roomId]));
       startTimer(roomId);
     }
   });
@@ -97,7 +119,21 @@ io.on("connection", (socket) => {
     const room = rooms[roomId];
     const player = players[socket.id];
 
-    if (room && guess.toLowerCase() === room.currentWord.toLowerCase()) {
+    if (!room || !player) return;
+
+    // Track guesses per player
+    if (!room.guessesPerPlayer[socket.id]) {
+      room.guessesPerPlayer[socket.id] = 0;
+    }
+
+    // Check if player has exceeded 3 guesses
+    if (room.guessesPerPlayer[socket.id] >= 3) {
+      return; // Ignore guess if player exceeded limit
+    }
+
+    room.guessesPerPlayer[socket.id]++;
+
+    if (guess.toLowerCase() === room.currentWord.toLowerCase()) {
       // Correct guess
       const pointsForGuesser = 50;
       const pointsForDrawer = 25;
@@ -122,6 +158,7 @@ io.on("connection", (socket) => {
       io.to(roomId).emit("wrong-guess", {
         player: player.player.name,
         guess,
+        guessCount: room.guessesPerPlayer[socket.id],
       });
     }
   });
@@ -137,7 +174,7 @@ io.on("connection", (socket) => {
         if (room.players.length === 0) {
           delete rooms[roomId];
         } else {
-          io.to(roomId).emit("room-update", room);
+          io.to(roomId).emit("room-update", getRoomData(room));
         }
       }
       delete players[socket.id];
@@ -177,6 +214,30 @@ function nextRound(roomId) {
     room.timer = null;
   }
 
+  // Increment round count
+  room.roundCount++;
+
+  // Check if game should end
+  if (room.roundCount >= room.maxRounds) {
+    // Game ended
+    room.gameStarted = false;
+    const sortedPlayers = [...room.players].sort((a, b) => b.score - a.score);
+    const winner = sortedPlayers[0];
+
+    io.to(roomId).emit("game-ended", {
+      players: room.players,
+      winner: winner,
+      roundsPlayed: room.roundCount,
+    });
+    return;
+  }
+
+  // Reset guesses for new round
+  room.guessesPerPlayer = {};
+  room.players.forEach((player) => {
+    room.guessesPerPlayer[player.id] = 0;
+  });
+
   // Rotate drawer
   const currentDrawerIndex = room.players.findIndex((p) => p.isDrawer);
   room.players.forEach((p) => (p.isDrawer = false));
@@ -188,7 +249,7 @@ function nextRound(roomId) {
   room.currentWord = getRandomWord();
   room.timeLeft = 60;
 
-  io.to(roomId).emit("next-round", room);
+  io.to(roomId).emit("next-round", getRoomData(room));
   startTimer(roomId);
 }
 

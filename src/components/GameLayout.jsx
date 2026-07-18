@@ -14,6 +14,8 @@ const GameLayout = () => {
   const [timeLeft, setTimeLeft] = useState(60);
   const [messages, setMessages] = useState([]);
   const [roomChecked, setRoomChecked] = useState(false);
+  const [gameEnded, setGameEnded] = useState(false);
+  const [gameResult, setGameResult] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -142,6 +144,15 @@ const GameLayout = () => {
       ]);
     });
 
+    socket.on("game-ended", (data) => {
+      setGameEnded(true);
+      setGameResult(data);
+      setRoomData((prev) => {
+        if (!prev) return prev;
+        return { ...prev, gameStarted: false };
+      });
+    });
+
     return () => {
       socket.off("room-update");
       socket.off("game-started");
@@ -149,6 +160,7 @@ const GameLayout = () => {
       socket.off("correct-guess");
       socket.off("wrong-guess");
       socket.off("next-round");
+      socket.off("game-ended");
     };
   }, [socket]);
 
@@ -174,6 +186,12 @@ const GameLayout = () => {
     if (socket && currentRoom) {
       socket.emit("start-game", currentRoom);
     }
+  };
+
+  const handleReturnToLobby = () => {
+    setGameEnded(false);
+    setGameResult(null);
+    navigate("/lobby", { replace: true });
   };
 
   const handleDrawing = useCallback(
@@ -312,8 +330,78 @@ const GameLayout = () => {
           </div>
         </div>
 
+        {/* Game End Screen */}
+        {gameEnded && gameResult && (
+          <div className="fixed inset-0 z-50 bg-brand-background/90 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="card max-w-2xl w-full text-center space-y-8 animate-in zoom-in duration-300 shadow-2xl">
+              <div className="text-6xl">🏆</div>
+
+              <div>
+                <h2 className="text-4xl font-black mb-2 text-brand-primary">
+                  Game Complete!
+                </h2>
+                <p className="text-slate-500 font-medium mb-1">
+                  All 3 rounds have been played
+                </p>
+              </div>
+
+              {gameResult.winner && (
+                <div className="p-6 bg-linear-to-br from-brand-warning/10 to-brand-warning/5 rounded-2xl border-2 border-brand-warning/20">
+                  <p className="text-xs font-black text-brand-warning uppercase tracking-widest mb-2">
+                    🎉 Winner
+                  </p>
+                  <p className="text-3xl font-black text-slate-800 mb-1">
+                    {gameResult.winner.name}
+                  </p>
+                  <p className="text-xl font-black text-brand-warning">
+                    {gameResult.winner.score} Points
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
+                  Final Scores
+                </p>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {gameResult.players
+                    .sort((a, b) => b.score - a.score)
+                    .map((player, index) => {
+                      const medals = ["🥇", "🥈", "🥉"];
+                      return (
+                        <div
+                          key={player.id}
+                          className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg">
+                              {index < 3 ? medals[index] : `#${index + 1}`}
+                            </span>
+                            <span className="font-bold text-slate-700">
+                              {player.name}
+                            </span>
+                          </div>
+                          <span className="font-black text-lg text-slate-800">
+                            {player.score}
+                          </span>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+
+              <button
+                onClick={handleReturnToLobby}
+                className="btn-primary w-full py-5 text-lg"
+              >
+                Back to Lobby
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Start Game Button Overlay */}
-        {!roomData.gameStarted && (
+        {!roomData.gameStarted && !gameEnded && (
           <div className="fixed inset-0 z-50 bg-brand-background/80 backdrop-blur-md flex items-center justify-center p-4">
             <div className="card max-w-sm w-full text-center space-y-8 animate-in zoom-in duration-300 shadow-2xl">
               <div className="text-6xl">🎮</div>
